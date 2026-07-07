@@ -31,15 +31,28 @@ namespace EnterpriseLicenseDeployer
 
             Text = "Settings";
             Size = new Size(760, 720);
+            MinimumSize = new Size(760, 520);
             StartPosition = FormStartPosition.CenterParent;
-            FormBorderStyle = FormBorderStyle.FixedDialog;
-            MaximizeBox = false;
+            FormBorderStyle = FormBorderStyle.Sizable;
+            MaximizeBox = true;
             MinimizeBox = false;
             Font = new Font("Segoe UI", 9F);
+
+            var rootLayout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 2,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty
+            };
+            rootLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            rootLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 52));
 
             var scrollPanel = new Panel
             {
                 Dock = DockStyle.Fill,
+                Margin = Padding.Empty,
                 AutoScroll = true,
                 Padding = new Padding(16)
             };
@@ -152,11 +165,8 @@ namespace EnterpriseLicenseDeployer
                 _applicationBoxes[i] = box;
             }
 
-            scrollPanel.Controls.Add(layout);
-            Controls.Add(scrollPanel);
-
             // --- Bottom buttons ---
-            var bottomPanel = new Panel { Dock = DockStyle.Bottom, Height = 52, Padding = new Padding(12) };
+            var bottomPanel = new Panel { Dock = DockStyle.Fill, Margin = Padding.Empty, Padding = new Padding(12) };
             var btnSave = new Button
             {
                 Text = "Save",
@@ -183,8 +193,11 @@ namespace EnterpriseLicenseDeployer
 
             bottomPanel.Controls.Add(btnSave);
             bottomPanel.Controls.Add(btnCancel);
-            Controls.Add(bottomPanel);
-            bottomPanel.BringToFront();
+
+            scrollPanel.Controls.Add(layout);
+            rootLayout.Controls.Add(scrollPanel, 0, 0);
+            rootLayout.Controls.Add(bottomPanel, 0, 1);
+            Controls.Add(rootLayout);
 
             AcceptButton = btnSave;
             CancelButton = btnCancel;
