@@ -1,0 +1,15 @@
+E:\project\EnterpriseLicenseDeployer\EnterpriseLicenseDeployer\bin\Debug\net8.0-windows\appsettings.json
+E:\project\EnterpriseLicenseDeployer\EnterpriseLicenseDeployer\bin\Debug\net8.0-windows\EnterpriseLicenseDeployer.exe
+E:\project\EnterpriseLicenseDeployer\EnterpriseLicenseDeployer\bin\Debug\net8.0-windows\EnterpriseLicenseDeployer.deps.json
+E:\project\EnterpriseLicenseDeployer\EnterpriseLicenseDeployer\bin\Debug\net8.0-windows\EnterpriseLicenseDeployer.runtimeconfig.json
+E:\project\EnterpriseLicenseDeployer\EnterpriseLicenseDeployer\bin\Debug\net8.0-windows\EnterpriseLicenseDeployer.dll
+E:\project\EnterpriseLicenseDeployer\EnterpriseLicenseDeployer\bin\Debug\net8.0-windows\EnterpriseLicenseDeployer.pdb
+E:\project\EnterpriseLicenseDeployer\EnterpriseLicenseDeployer\obj\Debug\net8.0-windows\EnterpriseLicenseDeployer.GeneratedMSBuildEditorConfig.editorconfig
+E:\project\EnterpriseLicenseDeployer\EnterpriseLicenseDeployer\obj\Debug\net8.0-windows\EnterpriseLicenseDeployer.AssemblyInfoInputs.cache
+E:\project\EnterpriseLicenseDeployer\EnterpriseLicenseDeployer\obj\Debug\net8.0-windows\EnterpriseLicenseDeployer.AssemblyInfo.cs
+E:\project\EnterpriseLicenseDeployer\EnterpriseLicenseDeployer\obj\Debug\net8.0-windows\EnterpriseLicenseDeployer.csproj.CoreCompileInputs.cache
+E:\project\EnterpriseLicenseDeployer\EnterpriseLicenseDeployer\obj\Debug\net8.0-windows\EnterpriseLicenseDeployer.dll
+E:\project\EnterpriseLicenseDeployer\EnterpriseLicenseDeployer\obj\Debug\net8.0-windows\refint\EnterpriseLicenseDeployer.dll
+E:\project\EnterpriseLicenseDeployer\EnterpriseLicenseDeployer\obj\Debug\net8.0-windows\EnterpriseLicenseDeployer.pdb
+E:\project\EnterpriseLicenseDeployer\EnterpriseLicenseDeployer\obj\Debug\net8.0-windows\EnterpriseLicenseDeployer.genruntimeconfig.cache
+E:\project\EnterpriseLicenseDeployer\EnterpriseLicenseDeployer\obj\Debug\net8.0-windows\ref\EnterpriseLicenseDeployer.dll
