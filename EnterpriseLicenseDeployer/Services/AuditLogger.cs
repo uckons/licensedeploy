@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using EnterpriseLicenseDeployer.Models;
 
 namespace EnterpriseLicenseDeployer.Services
 {
@@ -14,17 +15,27 @@ namespace EnterpriseLicenseDeployer.Services
         public static AuditLogger Instance => _instance.Value;
 
         private readonly object _lock = new();
-        private readonly string _logDirectory;
+        private string _logDirectory;
 
         public event Action<string>? LineWritten;
 
         private AuditLogger()
         {
-            _logDirectory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                "EnterpriseLicenseDeployer", "Logs");
-
+            _logDirectory = AuditLogDefaults.DefaultLogFolderPath;
             Directory.CreateDirectory(_logDirectory);
+        }
+
+        public void ConfigureLogDirectory(string? logDirectory)
+        {
+            var normalizedDirectory = string.IsNullOrWhiteSpace(logDirectory)
+                ? AuditLogDefaults.DefaultLogFolderPath
+                : Environment.ExpandEnvironmentVariables(logDirectory.Trim());
+
+            lock (_lock)
+            {
+                Directory.CreateDirectory(normalizedDirectory);
+                _logDirectory = normalizedDirectory;
+            }
         }
 
         public void Log(string level, string message)

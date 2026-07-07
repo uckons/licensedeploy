@@ -12,6 +12,7 @@ namespace EnterpriseLicenseDeployer
 
         private TextBox _txtTargetIp = null!;
         private TextBox _txtLicenseFolder = null!;
+        private TextBox _txtLogFolder = null!;
         private NumericUpDown _numHour = null!;
         private NumericUpDown _numMinute = null!;
 
@@ -31,15 +32,28 @@ namespace EnterpriseLicenseDeployer
 
             Text = "Settings";
             Size = new Size(760, 720);
+            MinimumSize = new Size(760, 520);
             StartPosition = FormStartPosition.CenterParent;
-            FormBorderStyle = FormBorderStyle.FixedDialog;
-            MaximizeBox = false;
+            FormBorderStyle = FormBorderStyle.Sizable;
+            MaximizeBox = true;
             MinimizeBox = false;
             Font = new Font("Segoe UI", 9F);
+
+            var rootLayout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 2,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty
+            };
+            rootLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            rootLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 52));
 
             var scrollPanel = new Panel
             {
                 Dock = DockStyle.Fill,
+                Margin = Padding.Empty,
                 AutoScroll = true,
                 Padding = new Padding(16)
             };
@@ -120,6 +134,7 @@ namespace EnterpriseLicenseDeployer
             row++;
 
             (_txtLicenseFolder, _) = AddPathRow("License Root Folder", isFolder: true);
+            (_txtLogFolder, _) = AddPathRow("Log Folder", isFolder: true);
 
             // --- Schedule ---
             AddSectionHeader("Daily Recheck Schedule");
@@ -152,11 +167,8 @@ namespace EnterpriseLicenseDeployer
                 _applicationBoxes[i] = box;
             }
 
-            scrollPanel.Controls.Add(layout);
-            Controls.Add(scrollPanel);
-
             // --- Bottom buttons ---
-            var bottomPanel = new Panel { Dock = DockStyle.Bottom, Height = 52, Padding = new Padding(12) };
+            var bottomPanel = new Panel { Dock = DockStyle.Fill, Margin = Padding.Empty, Padding = new Padding(12) };
             var btnSave = new Button
             {
                 Text = "Save",
@@ -183,8 +195,11 @@ namespace EnterpriseLicenseDeployer
 
             bottomPanel.Controls.Add(btnSave);
             bottomPanel.Controls.Add(btnCancel);
-            Controls.Add(bottomPanel);
-            bottomPanel.BringToFront();
+
+            scrollPanel.Controls.Add(layout);
+            rootLayout.Controls.Add(scrollPanel, 0, 0);
+            rootLayout.Controls.Add(bottomPanel, 0, 1);
+            Controls.Add(rootLayout);
 
             AcceptButton = btnSave;
             CancelButton = btnCancel;
@@ -196,6 +211,7 @@ namespace EnterpriseLicenseDeployer
         {
             _txtTargetIp.Text = config.TargetIp;
             _txtLicenseFolder.Text = config.LicenseFolderPath;
+            _txtLogFolder.Text = config.LogFolderPath;
             _numHour.Value = Math.Max(_numHour.Minimum, Math.Min(_numHour.Maximum, config.ScheduledHour));
             _numMinute.Value = Math.Max(_numMinute.Minimum, Math.Min(_numMinute.Maximum, config.ScheduledMinute));
 
@@ -222,10 +238,18 @@ namespace EnterpriseLicenseDeployer
                 return;
             }
 
+            if (string.IsNullOrWhiteSpace(_txtLogFolder.Text))
+            {
+                MessageBox.Show("Log Folder cannot be empty.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                DialogResult = DialogResult.None;
+                return;
+            }
+
             var config = new AppConfig
             {
                 TargetIp = _txtTargetIp.Text.Trim(),
                 LicenseFolderPath = _txtLicenseFolder.Text.Trim(),
+                LogFolderPath = _txtLogFolder.Text.Trim(),
                 ScheduledHour = (int)_numHour.Value,
                 ScheduledMinute = (int)_numMinute.Value
             };

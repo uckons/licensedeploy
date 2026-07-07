@@ -250,6 +250,7 @@ namespace EnterpriseLicenseDeployer
         private void LoadConfiguration()
         {
             _config = _configService.Load();
+            AuditLogger.Instance.ConfigureLogDirectory(_config.LogFolderPath);
             _lblNextRunValue.Text = $"{_config.ScheduledHour:D2}:{_config.ScheduledMinute:D2} (calculating...)";
         }
 
@@ -259,6 +260,7 @@ namespace EnterpriseLicenseDeployer
             if (form.ShowDialog(this) == DialogResult.OK)
             {
                 _config = form.ResultConfig;
+                AuditLogger.Instance.ConfigureLogDirectory(_config.LogFolderPath);
                 _configService.Save(_config);
                 RecalculateNextRunTime();
                 RefreshDetectionDisplay();

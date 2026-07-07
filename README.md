@@ -54,6 +54,7 @@ Semua path berikut **bisa diatur langsung dari UI aplikasi** (tidak perlu edit f
   └── ...
   ```
   Nama folder MAC bisa pakai format `AA-BB-CC-DD-EE-FF`, `AA:BB:CC:DD:EE:FF`, atau `AABBCCDDEEFF` — aplikasi akan mencocokkan otomatis.
+- **Log Folder** — folder penyimpanan audit log harian. Default: `%ProgramData%\EnterpriseLicenseDeployer\Logs`.
 - **7 Destination Folders** — folder tujuan tempat file lisensi disalin.
 - **7 Applications** — path .exe aplikasi yang akan dijalankan setelah lisensi berhasil disalin.
 - **Run time (HH:MM)** — jam berapa proses recheck otomatis dijalankan setiap hari (default 06:50).
@@ -63,7 +64,7 @@ Konfigurasi disimpan di:
 %ProgramData%\EnterpriseLicenseDeployer\config.json
 ```
 
-Audit log tersimpan di:
+Audit log tersimpan di folder yang bisa diatur dari menu **File > Settings**. Default-nya:
 ```
 %ProgramData%\EnterpriseLicenseDeployer\Logs\audit_yyyyMMdd.log
 ```
