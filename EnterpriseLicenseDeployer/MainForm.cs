@@ -19,11 +19,14 @@ namespace EnterpriseLicenseDeployer
         private readonly ConfigService _configService = new();
         private readonly ScheduleService _scheduleService = new();
         private readonly DeploymentOrchestrator _orchestrator = new();
+        private readonly AppLauncherService _appLauncherService = new();
 
         private AppConfig _config = new();
         private System.Windows.Forms.Timer _clockTimer = null!;
         private DateTime _nextRunTime;
+        private DateTime _nextCloseAppsTime;
         private DateTime? _lastRunDate;
+        private DateTime? _lastCloseAppsDate;
 
         // Status value labels (the "boxes")
         private Label _lblIpValue = null!;
@@ -355,7 +358,9 @@ namespace EnterpriseLicenseDeployer
 
         private void RecalculateNextRunTime()
         {
-            _nextRunTime = _scheduleService.GetNextRunTime(_config.ScheduledHour, _config.ScheduledMinute, DateTime.Now);
+            var now = DateTime.Now;
+            _nextRunTime = _scheduleService.GetNextRunTime(_config.ScheduledHour, _config.ScheduledMinute, now);
+            _nextCloseAppsTime = _scheduleService.GetNextRunTime(_config.CloseAppsHour, _config.CloseAppsMinute, now);
             _lblNextRunValue.Text = _nextRunTime.ToString("yyyy-MM-dd HH:mm:ss");
         }
 
@@ -363,6 +368,19 @@ namespace EnterpriseLicenseDeployer
         {
             var now = DateTime.Now;
             _lblCurrentTimeValue.Text = now.ToString("yyyy-MM-dd HH:mm:ss");
+
+            // Close configured applications once per day before the scheduled deployment run.
+            if (now >= _nextCloseAppsTime && (_lastCloseAppsDate == null || _lastCloseAppsDate.Value.Date != now.Date))
+            {
+                _lastCloseAppsDate = now.Date;
+                AuditLogger.Instance.Log("INFO", "Scheduled close-apps triggered.");
+                _statusLabel.Text = "Closing configured applications...";
+
+                var closedCount = _appLauncherService.CloseAll(_config.ApplicationPaths);
+                _statusLabel.Text = $"Closed {closedCount} configured application instance(s).";
+
+                RecalculateNextRunTime();
+            }
 
             // Fire once when we reach/pass the scheduled minute, and not already run today.
             if (now >= _nextRunTime && (_lastRunDate == null || _lastRunDate.Value.Date != now.Date))

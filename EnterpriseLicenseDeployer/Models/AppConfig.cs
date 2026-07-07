@@ -40,6 +40,12 @@ namespace EnterpriseLicenseDeployer.Models
             "", "", "", "", "", "", ""
         };
 
+        /// <summary>Hour (24h) when configured applications should be closed before deployment.</summary>
+        public int CloseAppsHour { get; set; } = 6;
+
+        /// <summary>Minute when configured applications should be closed before deployment.</summary>
+        public int CloseAppsMinute { get; set; } = 45;
+
         /// <summary>Hour (24h) of the daily scheduled recheck.</summary>
         public int ScheduledHour { get; set; } = 6;
 

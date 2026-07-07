@@ -13,6 +13,8 @@ namespace EnterpriseLicenseDeployer
         private TextBox _txtTargetIp = null!;
         private TextBox _txtLicenseFolder = null!;
         private TextBox _txtLogFolder = null!;
+        private NumericUpDown _numCloseHour = null!;
+        private NumericUpDown _numCloseMinute = null!;
         private NumericUpDown _numHour = null!;
         private NumericUpDown _numMinute = null!;
 
@@ -136,6 +138,21 @@ namespace EnterpriseLicenseDeployer
             (_txtLicenseFolder, _) = AddPathRow("License Root Folder", isFolder: true);
             (_txtLogFolder, _) = AddPathRow("Log Folder", isFolder: true);
 
+            // --- Close Apps Schedule ---
+            AddSectionHeader("Daily Close Apps Schedule");
+
+            var lblCloseTime = new Label { Text = "Close time (HH : MM)", AutoSize = true, Margin = new Padding(0, 6, 8, 6) };
+            var closeTimePanel = new FlowLayoutPanel { AutoSize = true, Margin = new Padding(0, 3, 0, 3) };
+            _numCloseHour = new NumericUpDown { Minimum = 0, Maximum = 23, Width = 60 };
+            _numCloseMinute = new NumericUpDown { Minimum = 0, Maximum = 59, Width = 60 };
+            closeTimePanel.Controls.Add(_numCloseHour);
+            closeTimePanel.Controls.Add(new Label { Text = " : ", AutoSize = true, TextAlign = ContentAlignment.MiddleCenter, Padding = new Padding(4, 6, 4, 0) });
+            closeTimePanel.Controls.Add(_numCloseMinute);
+            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            layout.Controls.Add(lblCloseTime, 0, row);
+            layout.Controls.Add(closeTimePanel, 1, row);
+            row++;
+
             // --- Schedule ---
             AddSectionHeader("Daily Recheck Schedule");
 
@@ -212,6 +229,8 @@ namespace EnterpriseLicenseDeployer
             _txtTargetIp.Text = config.TargetIp;
             _txtLicenseFolder.Text = config.LicenseFolderPath;
             _txtLogFolder.Text = config.LogFolderPath;
+            _numCloseHour.Value = Math.Max(_numCloseHour.Minimum, Math.Min(_numCloseHour.Maximum, config.CloseAppsHour));
+            _numCloseMinute.Value = Math.Max(_numCloseMinute.Minimum, Math.Min(_numCloseMinute.Maximum, config.CloseAppsMinute));
             _numHour.Value = Math.Max(_numHour.Minimum, Math.Min(_numHour.Maximum, config.ScheduledHour));
             _numMinute.Value = Math.Max(_numMinute.Minimum, Math.Min(_numMinute.Maximum, config.ScheduledMinute));
 
@@ -250,6 +269,8 @@ namespace EnterpriseLicenseDeployer
                 TargetIp = _txtTargetIp.Text.Trim(),
                 LicenseFolderPath = _txtLicenseFolder.Text.Trim(),
                 LogFolderPath = _txtLogFolder.Text.Trim(),
+                CloseAppsHour = (int)_numCloseHour.Value,
+                CloseAppsMinute = (int)_numCloseMinute.Value,
                 ScheduledHour = (int)_numHour.Value,
                 ScheduledMinute = (int)_numMinute.Value
             };
