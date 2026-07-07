@@ -12,6 +12,7 @@ namespace EnterpriseLicenseDeployer
 
         private TextBox _txtTargetIp = null!;
         private TextBox _txtLicenseFolder = null!;
+        private TextBox _txtLogFolder = null!;
         private NumericUpDown _numHour = null!;
         private NumericUpDown _numMinute = null!;
 
@@ -133,6 +134,7 @@ namespace EnterpriseLicenseDeployer
             row++;
 
             (_txtLicenseFolder, _) = AddPathRow("License Root Folder", isFolder: true);
+            (_txtLogFolder, _) = AddPathRow("Log Folder", isFolder: true);
 
             // --- Schedule ---
             AddSectionHeader("Daily Recheck Schedule");
@@ -209,6 +211,7 @@ namespace EnterpriseLicenseDeployer
         {
             _txtTargetIp.Text = config.TargetIp;
             _txtLicenseFolder.Text = config.LicenseFolderPath;
+            _txtLogFolder.Text = config.LogFolderPath;
             _numHour.Value = Math.Max(_numHour.Minimum, Math.Min(_numHour.Maximum, config.ScheduledHour));
             _numMinute.Value = Math.Max(_numMinute.Minimum, Math.Min(_numMinute.Maximum, config.ScheduledMinute));
 
@@ -235,10 +238,18 @@ namespace EnterpriseLicenseDeployer
                 return;
             }
 
+            if (string.IsNullOrWhiteSpace(_txtLogFolder.Text))
+            {
+                MessageBox.Show("Log Folder cannot be empty.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                DialogResult = DialogResult.None;
+                return;
+            }
+
             var config = new AppConfig
             {
                 TargetIp = _txtTargetIp.Text.Trim(),
                 LicenseFolderPath = _txtLicenseFolder.Text.Trim(),
+                LogFolderPath = _txtLogFolder.Text.Trim(),
                 ScheduledHour = (int)_numHour.Value,
                 ScheduledMinute = (int)_numMinute.Value
             };

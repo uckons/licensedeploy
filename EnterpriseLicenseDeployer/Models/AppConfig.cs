@@ -6,6 +6,14 @@ namespace EnterpriseLicenseDeployer.Models
     /// Persisted application configuration. Everything the operator can change
     /// from inside the app (Settings screen) lives here.
     /// </summary>
+    public static class AuditLogDefaults
+    {
+        public static string DefaultLogFolderPath =>
+            System.IO.Path.Combine(
+                System.Environment.GetFolderPath(System.Environment.SpecialFolder.CommonApplicationData),
+                "EnterpriseLicenseDeployer", "Logs");
+    }
+
     public class AppConfig
     {
         public const int DestinationFolderCount = 7;
@@ -16,6 +24,9 @@ namespace EnterpriseLicenseDeployer.Models
 
         /// <summary>Root folder containing one sub-folder per licensed MAC address.</summary>
         public string LicenseFolderPath { get; set; } = @"C:\License";
+
+        /// <summary>Folder where daily audit log files are written.</summary>
+        public string LogFolderPath { get; set; } = AuditLogDefaults.DefaultLogFolderPath;
 
         /// <summary>The 7 destination folders that receive the matched license files.</summary>
         public List<string> DestinationFolders { get; set; } = new()
