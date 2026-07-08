@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace EnterpriseLicenseDeployer.Services
 {
@@ -10,7 +11,7 @@ namespace EnterpriseLicenseDeployer.Services
         private const string ValidMacIdKey = "Valid MAC ID";
 
         /// <summary>
-        /// Looks inside every file under the license root folder for a line like
+        /// Looks inside every .lic file under the license root folder for a line like
         /// "Valid MAC ID = AA-BB-CC-DD-EE-FF". Accepts common MAC formats regardless
         /// of separator (AA-BB-CC-DD-EE-FF, AA:BB:CC:DD:EE:FF, AABBCCDDEEFF) and is
         /// case-insensitive.
@@ -24,7 +25,7 @@ namespace EnterpriseLicenseDeployer.Services
 
             var normalizedTarget = Normalize(macAddress);
 
-            foreach (var file in Directory.EnumerateFiles(licenseRootPath, "*", SearchOption.AllDirectories))
+            foreach (var file in Directory.EnumerateFiles(licenseRootPath, "*.lic", SearchOption.AllDirectories))
             {
                 try
                 {
@@ -42,7 +43,7 @@ namespace EnterpriseLicenseDeployer.Services
 
         private static bool FileContainsMatchingMac(string filePath, string normalizedTarget)
         {
-            foreach (var line in File.ReadLines(filePath))
+            foreach (var line in ReadTextLines(filePath))
             {
                 var value = ExtractValidMacIdValue(line);
                 if (value != null && Normalize(value) == normalizedTarget)
@@ -58,15 +59,42 @@ namespace EnterpriseLicenseDeployer.Services
             if (keyIndex < 0)
                 return null;
 
-            var separatorIndex = line.IndexOf('=', keyIndex + ValidMacIdKey.Length);
-            if (separatorIndex < 0)
-                return null;
+            var valueStartIndex = keyIndex + ValidMacIdKey.Length;
+            var separatorIndex = line.IndexOfAny(new[] { '=', ':' }, valueStartIndex);
+            if (separatorIndex >= 0)
+                valueStartIndex = separatorIndex + 1;
 
-            return line[(separatorIndex + 1)..].Trim();
+            return line[valueStartIndex..].Trim();
         }
 
-        private static string Normalize(string mac) =>
-            mac.Replace("-", "").Replace(":", "").Trim().ToUpperInvariant();
+        private static string Normalize(string mac)
+        {
+            var hex = new string(mac.Where(Uri.IsHexDigit).ToArray()).ToUpperInvariant();
+            return hex.Length > 12 ? hex[..12] : hex;
+        }
+
+        private static IEnumerable<string> ReadTextLines(string filePath)
+        {
+            var bytes = File.ReadAllBytes(filePath);
+
+            if (bytes.Length >= 2)
+            {
+                if (bytes[0] == 0xFF && bytes[1] == 0xFE)
+                    return File.ReadLines(filePath, Encoding.Unicode);
+
+                if (bytes[0] == 0xFE && bytes[1] == 0xFF)
+                    return File.ReadLines(filePath, Encoding.BigEndianUnicode);
+            }
+
+            if (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+                return File.ReadLines(filePath, Encoding.UTF8);
+
+            var looksLikeUtf16Le = bytes.Length > 1 && bytes.Where((_, index) => index % 2 == 1).Take(32).Count(value => value == 0) > 8;
+            if (looksLikeUtf16Le)
+                return Encoding.Unicode.GetString(bytes).Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+
+            return Encoding.UTF8.GetString(bytes).Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+        }
 
         /// <summary>
         /// Copies every matched license file into each configured destination folder,

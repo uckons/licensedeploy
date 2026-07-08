@@ -46,14 +46,14 @@ EnterpriseLicenseDeployer/
 Semua path berikut **bisa diatur langsung dari UI aplikasi** (tidak perlu edit file manual):
 
 - **Required Active IP** — IP yang harus aktif agar proses lanjut.
-- **License Root Folder** — 1 folder induk berisi folder-folder/file lisensi. Aplikasi akan membaca isi semua file di bawah folder ini dan mencari baris `Valid MAC ID = <active MAC address>`, contoh:
+- **License Root Folder** — 1 folder induk berisi beberapa sub-folder yang masing-masing berisi file lisensi `.lic`. Aplikasi akan membaca isi file `.lic` di bawah folder ini dan mencari baris `Valid MAC ID = <active MAC address>` atau `Valid MAC ID: <active MAC address>`, contoh:
   ```
   C:\License\
-  ├── CustomerA\license.dat   (berisi: Valid MAC ID = AA-BB-CC-DD-EE-FF)
-  ├── CustomerB\license.dat   (berisi: Valid MAC ID = 11:22:33:44:55:66)
+  ├── CustomerA\license.lic   (berisi: Valid MAC ID = AA-BB-CC-DD-EE-FF)
+  ├── CustomerB\license.lic   (berisi: Valid MAC ID = 11:22:33:44:55:66)
   └── ...
   ```
-  MAC di isi file bisa pakai format `AA-BB-CC-DD-EE-FF`, `AA:BB:CC:DD:EE:FF`, atau `AABBCCDDEEFF` — aplikasi akan mencocokkan otomatis. File yang cocok akan disalin ke semua **Destination Folders**.
+  MAC di isi file `.lic` bisa pakai format `AA-BB-CC-DD-EE-FF`, `AA:BB:CC:DD:EE:FF`, atau `AABBCCDDEEFF` — aplikasi akan mencocokkan otomatis. File `.lic` yang cocok akan disalin ke semua **Destination Folders**.
 - **Log Folder** — folder penyimpanan audit log harian. Default: `%ProgramData%\EnterpriseLicenseDeployer\Logs`.
 - **7 Destination Folders** — folder tujuan tempat file lisensi disalin.
 - **7 Applications** — path .exe aplikasi yang akan dijalankan setelah lisensi berhasil disalin.
