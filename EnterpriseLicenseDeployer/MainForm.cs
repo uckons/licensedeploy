@@ -317,9 +317,9 @@ namespace EnterpriseLicenseDeployer
                 }
 
                 var licenseService = new LicenseService();
-                var folder = licenseService.FindMatchingLicenseFolder(_config.LicenseFolderPath, info.MacAddress);
-                SetMatchStatus(folder != null ? "License folder matched" : "No matching license folder",
-                    folder != null ? OkColor : WarnColor);
+                var files = licenseService.FindMatchingLicenseFiles(_config.LicenseFolderPath, info.MacAddress);
+                SetMatchStatus(files.Count > 0 ? $"{files.Count} license file(s) matched" : "No matching license file",
+                    files.Count > 0 ? OkColor : WarnColor);
             }
             catch (Exception ex)
             {
