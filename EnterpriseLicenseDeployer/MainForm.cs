@@ -19,11 +19,14 @@ namespace EnterpriseLicenseDeployer
         private readonly ConfigService _configService = new();
         private readonly ScheduleService _scheduleService = new();
         private readonly DeploymentOrchestrator _orchestrator = new();
+        private readonly AppLauncherService _appLauncherService = new();
 
         private AppConfig _config = new();
         private System.Windows.Forms.Timer _clockTimer = null!;
         private DateTime _nextRunTime;
+        private DateTime _nextCloseAppsTime;
         private DateTime? _lastRunDate;
+        private DateTime? _lastCloseAppsDate;
 
         // Status value labels (the "boxes")
         private Label _lblIpValue = null!;
@@ -250,6 +253,7 @@ namespace EnterpriseLicenseDeployer
         private void LoadConfiguration()
         {
             _config = _configService.Load();
+            AuditLogger.Instance.ConfigureLogDirectory(_config.LogFolderPath);
             _lblNextRunValue.Text = $"{_config.ScheduledHour:D2}:{_config.ScheduledMinute:D2} (calculating...)";
         }
 
@@ -259,6 +263,7 @@ namespace EnterpriseLicenseDeployer
             if (form.ShowDialog(this) == DialogResult.OK)
             {
                 _config = form.ResultConfig;
+                AuditLogger.Instance.ConfigureLogDirectory(_config.LogFolderPath);
                 _configService.Save(_config);
                 RecalculateNextRunTime();
                 RefreshDetectionDisplay();
@@ -312,9 +317,9 @@ namespace EnterpriseLicenseDeployer
                 }
 
                 var licenseService = new LicenseService();
-                var folder = licenseService.FindMatchingLicenseFolder(_config.LicenseFolderPath, info.MacAddress);
-                SetMatchStatus(folder != null ? "License folder matched" : "No matching license folder",
-                    folder != null ? OkColor : WarnColor);
+                var files = licenseService.FindMatchingLicenseFiles(_config.LicenseFolderPath, info.MacAddress);
+                SetMatchStatus(files.Count > 0 ? $"{files.Count} license file(s) matched" : "No matching license file",
+                    files.Count > 0 ? OkColor : WarnColor);
             }
             catch (Exception ex)
             {
@@ -353,7 +358,9 @@ namespace EnterpriseLicenseDeployer
 
         private void RecalculateNextRunTime()
         {
-            _nextRunTime = _scheduleService.GetNextRunTime(_config.ScheduledHour, _config.ScheduledMinute, DateTime.Now);
+            var now = DateTime.Now;
+            _nextRunTime = _scheduleService.GetNextRunTime(_config.ScheduledHour, _config.ScheduledMinute, now);
+            _nextCloseAppsTime = _scheduleService.GetNextRunTime(_config.CloseAppsHour, _config.CloseAppsMinute, now);
             _lblNextRunValue.Text = _nextRunTime.ToString("yyyy-MM-dd HH:mm:ss");
         }
 
@@ -361,6 +368,19 @@ namespace EnterpriseLicenseDeployer
         {
             var now = DateTime.Now;
             _lblCurrentTimeValue.Text = now.ToString("yyyy-MM-dd HH:mm:ss");
+
+            // Close configured applications once per day before the scheduled deployment run.
+            if (now >= _nextCloseAppsTime && (_lastCloseAppsDate == null || _lastCloseAppsDate.Value.Date != now.Date))
+            {
+                _lastCloseAppsDate = now.Date;
+                AuditLogger.Instance.Log("INFO", "Scheduled close-apps triggered.");
+                _statusLabel.Text = "Closing configured applications...";
+
+                var closedCount = _appLauncherService.CloseAll(_config.ApplicationPaths);
+                _statusLabel.Text = $"Closed {closedCount} configured application instance(s).";
+
+                RecalculateNextRunTime();
+            }
 
             // Fire once when we reach/pass the scheduled minute, and not already run today.
             if (now >= _nextRunTime && (_lastRunDate == null || _lastRunDate.Value.Date != now.Date))
