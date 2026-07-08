@@ -48,10 +48,10 @@ namespace EnterpriseLicenseDeployer.Services
                 };
             }
 
-            var matchedFolder = _licenseService.FindMatchingLicenseFolder(config.LicenseFolderPath, netInfo.MacAddress);
-            if (matchedFolder == null)
+            var matchedFiles = _licenseService.FindMatchingLicenseFiles(config.LicenseFolderPath, netInfo.MacAddress);
+            if (matchedFiles.Count == 0)
             {
-                var msg = $"No license folder found matching MAC '{netInfo.MacAddress}' under '{config.LicenseFolderPath}'.";
+                var msg = $"No license file found with Valid MAC ID matching '{netInfo.MacAddress}' under '{config.LicenseFolderPath}'.";
                 AuditLogger.Instance.Log("WARN", msg);
                 return new RoutineResult
                 {
@@ -62,12 +62,12 @@ namespace EnterpriseLicenseDeployer.Services
                 };
             }
 
-            AuditLogger.Instance.Log("INFO", $"License match found: '{matchedFolder}'.");
+            AuditLogger.Instance.Log("INFO", $"{matchedFiles.Count} license file match(es) found for MAC '{netInfo.MacAddress}'.");
 
-            var copiedCount = _licenseService.DeployToDestinations(matchedFolder, config.DestinationFolders);
+            var copiedCount = _licenseService.DeployFilesToDestinations(matchedFiles, config.DestinationFolders);
             var launchedCount = _appLauncherService.LaunchAll(config.ApplicationPaths);
 
-            var successMsg = $"Routine complete. Deployed to {copiedCount}/{config.DestinationFolders.Count} destinations, launched {launchedCount}/{config.ApplicationPaths.Count} applications.";
+            var successMsg = $"Routine complete. Copied {matchedFiles.Count} matching license file(s) to {copiedCount}/{config.DestinationFolders.Count} destinations, launched {launchedCount}/{config.ApplicationPaths.Count} applications.";
             AuditLogger.Instance.Log("INFO", successMsg);
             AuditLogger.Instance.Log("INFO", "=== Routine finished ===");
 

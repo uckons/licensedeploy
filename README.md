@@ -46,16 +46,18 @@ EnterpriseLicenseDeployer/
 Semua path berikut **bisa diatur langsung dari UI aplikasi** (tidak perlu edit file manual):
 
 - **Required Active IP** — IP yang harus aktif agar proses lanjut.
-- **License Root Folder** — 1 folder induk berisi sub-folder per MAC address, contoh:
+- **License Root Folder** — 1 folder induk berisi beberapa sub-folder yang masing-masing berisi file lisensi `.lic`. Aplikasi akan membaca isi file `.lic` di bawah folder ini dan mencari baris `Valid MAC ID = <active MAC address>` atau `Valid MAC ID: <active MAC address>`, contoh:
   ```
   C:\License\
-  ├── AA-BB-CC-DD-EE-FF\   (isi lisensi untuk MAC ini)
-  ├── 11-22-33-44-55-66\
+  ├── CustomerA\license.lic   (berisi: Valid MAC ID = AA-BB-CC-DD-EE-FF)
+  ├── CustomerB\license.lic   (berisi: Valid MAC ID = 11:22:33:44:55:66)
   └── ...
   ```
-  Nama folder MAC bisa pakai format `AA-BB-CC-DD-EE-FF`, `AA:BB:CC:DD:EE:FF`, atau `AABBCCDDEEFF` — aplikasi akan mencocokkan otomatis.
+  MAC di isi file `.lic` bisa pakai format `AA-BB-CC-DD-EE-FF`, `AA:BB:CC:DD:EE:FF`, atau `AABBCCDDEEFF` — aplikasi akan mencocokkan otomatis. File `.lic` yang cocok akan disalin ke semua **Destination Folders**.
+- **Log Folder** — folder penyimpanan audit log harian. Default: `%ProgramData%\EnterpriseLicenseDeployer\Logs`.
 - **7 Destination Folders** — folder tujuan tempat file lisensi disalin.
 - **7 Applications** — path .exe aplikasi yang akan dijalankan setelah lisensi berhasil disalin.
+- **Close time (HH:MM)** — jam berapa aplikasi yang masih berjalan akan ditutup otomatis setiap hari (default 06:45), supaya run pagi tidak bentrok dengan proses lama.
 - **Run time (HH:MM)** — jam berapa proses recheck otomatis dijalankan setiap hari (default 06:50).
 
 Konfigurasi disimpan di:
@@ -63,7 +65,7 @@ Konfigurasi disimpan di:
 %ProgramData%\EnterpriseLicenseDeployer\config.json
 ```
 
-Audit log tersimpan di:
+Audit log tersimpan di folder yang bisa diatur dari menu **File > Settings**. Default-nya:
 ```
 %ProgramData%\EnterpriseLicenseDeployer\Logs\audit_yyyyMMdd.log
 ```
@@ -71,5 +73,6 @@ Audit log tersimpan di:
 ## Catatan
 
 - Karena aplikasi menulis ke `%ProgramData%` dan menyalin file ke folder tujuan (biasanya di `C:\Apps\...`), jalankan sebagai user yang punya izin tulis ke folder-folder tersebut (atau jalankan as Administrator jika perlu).
+- Jadwal **Close time** menutup proses aplikasi yang path-nya sama dengan daftar **7 Applications** sebelum jadwal recheck berjalan.
 - Tombol **Run Now** di layar utama memicu proses secara manual kapan saja, tanpa menunggu jadwal jam 06:50.
 - UI dibuat secara programatik (bukan lewat file `.Designer.cs` terpisah) supaya seluruh tampilan mudah dibaca dalam satu file — silakan sesuaikan warna/logo di bagian atas `MainForm.cs` (`HeaderColor`, `AccentColor`) sesuai identitas perusahaan Anda.
