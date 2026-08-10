@@ -9,6 +9,7 @@ Aplikasi Windows Forms (.NET 8, C#) untuk Visual Studio 2022 yang secara otomati
 5. Menjalankan **7 aplikasi** yang dikonfigurasi.
 6. Mencatat semua aktivitas ke **audit log** (file harian + tampilan live di layar).
 7. Menjalankan ulang seluruh proses di atas secara otomatis setiap hari jam **06:50** (bisa diubah di Settings), dan menampilkan **Current Time** serta **Next Scheduled Run** secara real-time.
+8. Menampilkan status aplikasi **RUNNING** atau **OFF**. Saat aplikasi sedang berjalan, tombol **Run Now** dinonaktifkan dan tombol **Stop** dapat digunakan untuk menutup aplikasi yang dikonfigurasi.
 
 ## Cara membuka di Visual Studio 2022
 
@@ -75,4 +76,5 @@ Audit log tersimpan di folder yang bisa diatur dari menu **File > Settings**. De
 - Karena aplikasi menulis ke `%ProgramData%` dan menyalin file ke folder tujuan (biasanya di `C:\Apps\...`), jalankan sebagai user yang punya izin tulis ke folder-folder tersebut (atau jalankan as Administrator jika perlu).
 - Jadwal **Close time** menutup proses aplikasi yang path-nya sama dengan daftar **7 Applications** sebelum jadwal recheck berjalan.
 - Tombol **Run Now** di layar utama memicu proses secara manual kapan saja, tanpa menunggu jadwal jam 06:50.
+- Tombol **Run Now** hanya aktif ketika semua aplikasi yang dikonfigurasi berstatus **OFF**. Gunakan tombol **Stop** untuk menutup proses aplikasi yang sedang **RUNNING**.
 - UI dibuat secara programatik (bukan lewat file `.Designer.cs` terpisah) supaya seluruh tampilan mudah dibaca dalam satu file — silakan sesuaikan warna/logo di bagian atas `MainForm.cs` (`HeaderColor`, `AccentColor`) sesuai identitas perusahaan Anda.
