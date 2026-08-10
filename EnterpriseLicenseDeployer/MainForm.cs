@@ -32,12 +32,15 @@ namespace EnterpriseLicenseDeployer
         private Label _lblIpValue = null!;
         private Label _lblMacValue = null!;
         private Label _lblMatchValue = null!;
+        private Label _lblAppsStatusValue = null!;
         private Label _lblCurrentTimeValue = null!;
         private Label _lblNextRunValue = null!;
         private TextBox _txtAuditLog = null!;
         private StatusStrip _statusStrip = null!;
         private ToolStripStatusLabel _statusLabel = null!;
         private Button _btnRunNow = null!;
+        private Button _btnStop = null!;
+        private bool _routineInProgress;
 
         public MainForm()
         {
@@ -48,6 +51,7 @@ namespace EnterpriseLicenseDeployer
 
             // Kick off an initial detection pass at startup (display only, no copy)
             RefreshDetectionDisplay();
+            RefreshApplicationStatus();
         }
 
         private void InitializeComponent()
@@ -108,7 +112,7 @@ namespace EnterpriseLicenseDeployer
             {
                 Text = "System Status",
                 Dock = DockStyle.Top,
-                Height = 220,
+                Height = 250,
                 Padding = new Padding(16),
                 Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold)
             };
@@ -117,12 +121,12 @@ namespace EnterpriseLicenseDeployer
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 2,
-                RowCount = 5,
+                RowCount = 6,
                 Font = new Font("Segoe UI", 9.5F, FontStyle.Regular)
             };
             grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 220));
             grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            for (int i = 0; i < 5; i++) grid.RowStyles.Add(new RowStyle(SizeType.Percent, 20));
+            for (int i = 0; i < 6; i++) grid.RowStyles.Add(new RowStyle(SizeType.Percent, 100F / 6));
 
             (Label caption, Label value) MakeRow(string caption)
             {
@@ -152,17 +156,19 @@ namespace EnterpriseLicenseDeployer
             var (c1, v1) = MakeRow("Active IP Address");
             var (c2, v2) = MakeRow("Active MAC Address");
             var (c3, v3) = MakeRow("License Match Status");
-            var (c4, v4) = MakeRow("Current Time");
-            var (c5, v5) = MakeRow("Next Scheduled Run (06:50 daily)");
+            var (c4, v4) = MakeRow("Applications Status");
+            var (c5, v5) = MakeRow("Current Time");
+            var (c6, v6) = MakeRow("Next Scheduled Run (06:50 daily)");
 
             _lblIpValue = v1; _lblMacValue = v2; _lblMatchValue = v3;
-            _lblCurrentTimeValue = v4; _lblNextRunValue = v5;
+            _lblAppsStatusValue = v4; _lblCurrentTimeValue = v5; _lblNextRunValue = v6;
 
             grid.Controls.Add(c1, 0, 0); grid.Controls.Add(v1, 1, 0);
             grid.Controls.Add(c2, 0, 1); grid.Controls.Add(v2, 1, 1);
             grid.Controls.Add(c3, 0, 2); grid.Controls.Add(v3, 1, 2);
             grid.Controls.Add(c4, 0, 3); grid.Controls.Add(v4, 1, 3);
             grid.Controls.Add(c5, 0, 4); grid.Controls.Add(v5, 1, 4);
+            grid.Controls.Add(c6, 0, 5); grid.Controls.Add(v6, 1, 5);
 
             statusGroup.Controls.Add(grid);
             Controls.Add(statusGroup);
@@ -170,16 +176,19 @@ namespace EnterpriseLicenseDeployer
             // ---- Button bar ----
             var buttonPanel = new Panel { Dock = DockStyle.Top, Height = 56, Padding = new Padding(16, 8, 16, 8) };
             _btnRunNow = MakeButton("Run Now", AccentColor, BtnRunNow_Click);
+            _btnStop = MakeButton("Stop", Color.FromArgb(196, 43, 28), BtnStop_Click);
             var btnSettings = MakeButton("Settings", Color.FromArgb(90, 98, 108), BtnSettings_Click);
             var btnOpenLogFolder = MakeButton("Open Log Folder", Color.FromArgb(90, 98, 108), BtnOpenLogFolder_Click);
             var btnExit = MakeButton("Exit", Color.FromArgb(160, 40, 40), BtnExit_Click);
 
             _btnRunNow.Location = new Point(0, 8);
-            btnSettings.Location = new Point(150, 8);
-            btnOpenLogFolder.Location = new Point(300, 8);
-            btnExit.Location = new Point(470, 8);
+            _btnStop.Location = new Point(150, 8);
+            btnSettings.Location = new Point(300, 8);
+            btnOpenLogFolder.Location = new Point(450, 8);
+            btnExit.Location = new Point(620, 8);
 
             buttonPanel.Controls.Add(_btnRunNow);
+            buttonPanel.Controls.Add(_btnStop);
             buttonPanel.Controls.Add(btnSettings);
             buttonPanel.Controls.Add(btnOpenLogFolder);
             buttonPanel.Controls.Add(btnExit);
@@ -226,6 +235,7 @@ namespace EnterpriseLicenseDeployer
         private void OpenLogMenuItem_Click(object? sender, EventArgs e) => OpenLogFolder();
         private void ExitMenuItem_Click(object? sender, EventArgs e) => Close();
         private void BtnRunNow_Click(object? sender, EventArgs e) => RunRoutineManually();
+        private void BtnStop_Click(object? sender, EventArgs e) => StopApplications();
         private void BtnSettings_Click(object? sender, EventArgs e) => OpenSettings();
         private void BtnOpenLogFolder_Click(object? sender, EventArgs e) => OpenLogFolder();
         private void BtnExit_Click(object? sender, EventArgs e) => Close();
@@ -267,6 +277,7 @@ namespace EnterpriseLicenseDeployer
                 _configService.Save(_config);
                 RecalculateNextRunTime();
                 RefreshDetectionDisplay();
+                RefreshApplicationStatus();
             }
         }
 
@@ -335,6 +346,7 @@ namespace EnterpriseLicenseDeployer
 
         private void RunRoutineManually()
         {
+            _routineInProgress = true;
             _btnRunNow.Enabled = false;
             _statusLabel.Text = "Running deployment routine...";
             try
@@ -348,8 +360,30 @@ namespace EnterpriseLicenseDeployer
             }
             finally
             {
-                _btnRunNow.Enabled = true;
+                _routineInProgress = false;
+                RefreshApplicationStatus();
             }
+        }
+
+        private void StopApplications()
+        {
+            _btnStop.Enabled = false;
+            _statusLabel.Text = "Stopping configured applications...";
+
+            var closedCount = _appLauncherService.CloseAll(_config.ApplicationPaths);
+            RefreshApplicationStatus();
+            _statusLabel.Text = $"Stopped {closedCount} configured application instance(s).";
+        }
+
+        private void RefreshApplicationStatus()
+        {
+            var runningCount = _appLauncherService.GetRunningCount(_config.ApplicationPaths);
+            bool isRunning = runningCount > 0;
+
+            _lblAppsStatusValue.Text = isRunning ? $"RUNNING ({runningCount})" : "OFF";
+            _lblAppsStatusValue.ForeColor = isRunning ? OkColor : WarnColor;
+            _btnRunNow.Enabled = !_routineInProgress && !isRunning;
+            _btnStop.Enabled = !_routineInProgress && isRunning;
         }
 
         // ---------------------------------------------------------------
@@ -368,6 +402,7 @@ namespace EnterpriseLicenseDeployer
         {
             var now = DateTime.Now;
             _lblCurrentTimeValue.Text = now.ToString("yyyy-MM-dd HH:mm:ss");
+            RefreshApplicationStatus();
 
             // Close configured applications once per day before the scheduled deployment run.
             if (now >= _nextCloseAppsTime && (_lastCloseAppsDate == null || _lastCloseAppsDate.Value.Date != now.Date))
@@ -377,6 +412,7 @@ namespace EnterpriseLicenseDeployer
                 _statusLabel.Text = "Closing configured applications...";
 
                 var closedCount = _appLauncherService.CloseAll(_config.ApplicationPaths);
+                RefreshApplicationStatus();
                 _statusLabel.Text = $"Closed {closedCount} configured application instance(s).";
 
                 RecalculateNextRunTime();
@@ -391,6 +427,7 @@ namespace EnterpriseLicenseDeployer
 
                 var result = _orchestrator.Execute(_config);
                 RefreshDetectionDisplay();
+                RefreshApplicationStatus();
                 _statusLabel.Text = result.Message;
 
                 RecalculateNextRunTime();

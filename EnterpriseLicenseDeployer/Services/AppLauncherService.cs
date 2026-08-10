@@ -7,6 +7,42 @@ namespace EnterpriseLicenseDeployer.Services
     public class AppLauncherService
     {
         /// <summary>
+        /// Counts running processes whose executable paths match the configured applications.
+        /// </summary>
+        public int GetRunningCount(System.Collections.Generic.IEnumerable<string> applicationPaths)
+        {
+            int running = 0;
+
+            foreach (var path in applicationPaths)
+            {
+                if (string.IsNullOrWhiteSpace(path))
+                    continue;
+
+                var processName = Path.GetFileNameWithoutExtension(path);
+                if (string.IsNullOrWhiteSpace(processName))
+                    continue;
+
+                foreach (var process in Process.GetProcessesByName(processName))
+                {
+                    using (process)
+                    {
+                        try
+                        {
+                            if (!process.HasExited && MatchesConfiguredPath(process, path))
+                                running++;
+                        }
+                        catch
+                        {
+                            // The process may exit while its status is being inspected.
+                        }
+                    }
+                }
+            }
+
+            return running;
+        }
+
+        /// <summary>
         /// Launches each configured application path. Skips blanks and logs
         /// missing executables instead of throwing.
         /// </summary>
