@@ -172,7 +172,7 @@ namespace EnterpriseLicenseDeployer
             AddSectionHeader("Destination Folders (7)");
             for (int i = 0; i < AppConfig.DestinationFolderCount; i++)
             {
-                var (box, _) = AddPathRow($"Destination Folder {i + 1}", isFolder: true);
+                var (box, _) = AddPathRow(AppConfig.DestinationFolderNames[i], isFolder: true);
                 _destinationBoxes[i] = box;
             }
 
@@ -180,7 +180,7 @@ namespace EnterpriseLicenseDeployer
             AddSectionHeader("Applications (7)");
             for (int i = 0; i < AppConfig.ApplicationCount; i++)
             {
-                var (box, _) = AddPathRow($"Application {i + 1}", isFolder: false);
+                var (box, _) = AddPathRow(AppConfig.ApplicationNames[i], isFolder: false);
                 _applicationBoxes[i] = box;
             }
 

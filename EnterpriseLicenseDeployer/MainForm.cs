@@ -33,6 +33,8 @@ namespace EnterpriseLicenseDeployer
         private Label _lblMacValue = null!;
         private Label _lblMatchValue = null!;
         private Label _lblAppsStatusValue = null!;
+        private readonly Label[] _applicationStatusLights = new Label[AppConfig.ApplicationCount];
+        private readonly Label[] _applicationStatusTexts = new Label[AppConfig.ApplicationCount];
         private Label _lblCurrentTimeValue = null!;
         private Label _lblNextRunValue = null!;
         private TextBox _txtAuditLog = null!;
@@ -59,8 +61,8 @@ namespace EnterpriseLicenseDeployer
             SuspendLayout();
 
             Text = "SKY License Deployment Manager";
-            Size = new Size(920, 640);
-            MinimumSize = new Size(820, 560);
+            Size = new Size(920, 760);
+            MinimumSize = new Size(820, 680);
             StartPosition = FormStartPosition.CenterScreen;
             BackColor = BackColorMain;
             Font = new Font("Segoe UI", 9F);
@@ -193,6 +195,61 @@ namespace EnterpriseLicenseDeployer
             buttonPanel.Controls.Add(btnOpenLogFolder);
             buttonPanel.Controls.Add(btnExit);
             Controls.Add(buttonPanel);
+
+            // ---- Individual application statuses ----
+            var applicationsGroup = new GroupBox
+            {
+                Text = "Application Status",
+                Dock = DockStyle.Top,
+                Height = 116,
+                Padding = new Padding(16, 8, 16, 10),
+                Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold)
+            };
+            var applicationsGrid = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 4,
+                RowCount = 2,
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular)
+            };
+            for (int column = 0; column < 4; column++)
+                applicationsGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            applicationsGrid.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            applicationsGrid.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+
+            for (int i = 0; i < AppConfig.ApplicationCount; i++)
+            {
+                var item = new FlowLayoutPanel
+                {
+                    Dock = DockStyle.Fill,
+                    FlowDirection = FlowDirection.LeftToRight,
+                    WrapContents = false,
+                    Margin = new Padding(2),
+                    Padding = new Padding(4, 7, 2, 2)
+                };
+                var light = new Label
+                {
+                    Text = "●",
+                    AutoSize = true,
+                    Font = new Font("Segoe UI Symbol", 13F, FontStyle.Bold),
+                    ForeColor = WarnColor,
+                    Margin = new Padding(0, 0, 5, 0)
+                };
+                var status = new Label
+                {
+                    Text = $"{AppConfig.ApplicationNames[i]}: OFF",
+                    AutoSize = true,
+                    ForeColor = WarnColor,
+                    Margin = new Padding(0, 4, 0, 0)
+                };
+                _applicationStatusLights[i] = light;
+                _applicationStatusTexts[i] = status;
+                item.Controls.Add(light);
+                item.Controls.Add(status);
+                applicationsGrid.Controls.Add(item, i % 4, i / 4);
+            }
+            applicationsGroup.Controls.Add(applicationsGrid);
+            Controls.Add(applicationsGroup);
 
             // ---- Status strip (must be added before the Fill panel so it keeps its space) ----
             _statusStrip = new StatusStrip();
@@ -377,7 +434,17 @@ namespace EnterpriseLicenseDeployer
 
         private void RefreshApplicationStatus()
         {
-            var runningCount = _appLauncherService.GetRunningCount(_config.ApplicationPaths);
+            var statuses = _appLauncherService.GetRunningStatuses(_config.ApplicationPaths);
+            var runningCount = 0;
+            for (int i = 0; i < AppConfig.ApplicationCount; i++)
+            {
+                bool running = i < statuses.Length && statuses[i];
+                if (running) runningCount++;
+
+                _applicationStatusLights[i].ForeColor = running ? OkColor : WarnColor;
+                _applicationStatusTexts[i].Text = $"{AppConfig.ApplicationNames[i]}: {(running ? "RUNNING" : "OFF")}";
+                _applicationStatusTexts[i].ForeColor = running ? OkColor : WarnColor;
+            }
             bool isRunning = runningCount > 0;
 
             _lblAppsStatusValue.Text = isRunning ? $"RUNNING ({runningCount})" : "OFF";

@@ -19,6 +19,28 @@ namespace EnterpriseLicenseDeployer.Models
         public const int DestinationFolderCount = 7;
         public const int ApplicationCount = 7;
 
+        public static readonly string[] DestinationFolderNames =
+        {
+            "Folder Splitter",
+            "Folder ITCH",
+            "Folder ITCH_SQL",
+            "Splitter MDF",
+            "Splitter MME",
+            "MME Datafeed Server",
+            "Datafeed To SQL"
+        };
+
+        public static readonly string[] ApplicationNames =
+        {
+            "Splitter",
+            "Splitter DF ITCH",
+            "DF ITCH SQL",
+            "Splitter MDF",
+            "Splitter MME",
+            "Datafeed Server",
+            "Datafeed To SQL"
+        };
+
         /// <summary>The IP address that must be active on this machine for the routine to run.</summary>
         public string TargetIp { get; set; } = "192.168.1.10";
 
