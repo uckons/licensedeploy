@@ -9,7 +9,7 @@ Aplikasi Windows Forms (.NET 8, C#) untuk Visual Studio 2022 yang secara otomati
 5. Menjalankan **7 aplikasi** yang dikonfigurasi.
 6. Mencatat semua aktivitas ke **audit log** (file harian + tampilan live di layar).
 7. Menjalankan ulang seluruh proses di atas secara otomatis setiap hari jam **06:50** (bisa diubah di Settings), dan menampilkan **Current Time** serta **Next Scheduled Run** secara real-time.
-8. Menampilkan status aplikasi **RUNNING** atau **OFF**. Saat aplikasi sedang berjalan, tombol **Run Now** dinonaktifkan dan tombol **Stop** dapat digunakan untuk menutup aplikasi yang dikonfigurasi.
+8. Menampilkan status **RUNNING** (lampu hijau) atau **OFF** (lampu merah) untuk masing-masing dari 7 aplikasi. Saat aplikasi sedang berjalan, tombol **Run Now** dinonaktifkan dan tombol **Stop** dapat digunakan untuk menutup aplikasi yang dikonfigurasi.
 
 ## Cara membuka di Visual Studio 2022
 
@@ -56,8 +56,8 @@ Semua path berikut **bisa diatur langsung dari UI aplikasi** (tidak perlu edit f
   ```
   MAC di isi file `.lic` bisa pakai format `AA-BB-CC-DD-EE-FF`, `AA:BB:CC:DD:EE:FF`, atau `AABBCCDDEEFF` — aplikasi akan mencocokkan otomatis. File `.lic` yang cocok akan disalin ke semua **Destination Folders**.
 - **Log Folder** — folder penyimpanan audit log harian. Default: `%ProgramData%\EnterpriseLicenseDeployer\Logs`.
-- **7 Destination Folders** — folder tujuan tempat file lisensi disalin.
-- **7 Applications** — path .exe aplikasi yang akan dijalankan setelah lisensi berhasil disalin.
+- **7 Destination Folders** — Folder Splitter, Folder ITCH, Folder ITCH_SQL, Splitter MDF, Splitter MME, MME Datafeed Server, dan Datafeed To SQL.
+- **7 Applications** — Splitter, Splitter DF ITCH, DF ITCH SQL, Splitter MDF, Splitter MME, Datafeed Server, dan Datafeed To SQL. Status masing-masing ditampilkan di layar utama dengan lampu hijau saat **RUNNING** dan merah saat **OFF**.
 - **Close time (HH:MM)** — jam berapa aplikasi yang masih berjalan akan ditutup otomatis setiap hari (default 06:45), supaya run pagi tidak bentrok dengan proses lama.
 - **Run time (HH:MM)** — jam berapa proses recheck otomatis dijalankan setiap hari (default 06:50).
 

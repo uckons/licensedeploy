@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace EnterpriseLicenseDeployer.Services
 {
@@ -11,35 +12,43 @@ namespace EnterpriseLicenseDeployer.Services
         /// </summary>
         public int GetRunningCount(System.Collections.Generic.IEnumerable<string> applicationPaths)
         {
-            int running = 0;
+            return GetRunningStatuses(applicationPaths).Count(status => status);
+        }
 
-            foreach (var path in applicationPaths)
+        /// <summary>
+        /// Returns one running/off value for each configured application path.
+        /// </summary>
+        public bool[] GetRunningStatuses(System.Collections.Generic.IEnumerable<string> applicationPaths)
+        {
+            return applicationPaths.Select(IsRunning).ToArray();
+        }
+
+        private static bool IsRunning(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                return false;
+
+            var processName = Path.GetFileNameWithoutExtension(path);
+            if (string.IsNullOrWhiteSpace(processName))
+                return false;
+
+            foreach (var process in Process.GetProcessesByName(processName))
             {
-                if (string.IsNullOrWhiteSpace(path))
-                    continue;
-
-                var processName = Path.GetFileNameWithoutExtension(path);
-                if (string.IsNullOrWhiteSpace(processName))
-                    continue;
-
-                foreach (var process in Process.GetProcessesByName(processName))
+                using (process)
                 {
-                    using (process)
+                    try
                     {
-                        try
-                        {
-                            if (!process.HasExited && MatchesConfiguredPath(process, path))
-                                running++;
-                        }
-                        catch
-                        {
-                            // The process may exit while its status is being inspected.
-                        }
+                        if (!process.HasExited && MatchesConfiguredPath(process, path))
+                            return true;
+                    }
+                    catch
+                    {
+                        // The process may exit while its status is being inspected.
                     }
                 }
             }
 
-            return running;
+            return false;
         }
 
         /// <summary>
