@@ -75,6 +75,7 @@ Audit log tersimpan di folder yang bisa diatur dari menu **File > Settings**. De
 
 - Karena aplikasi menulis ke `%ProgramData%` dan menyalin file ke folder tujuan (biasanya di `C:\Apps\...`), jalankan sebagai user yang punya izin tulis ke folder-folder tersebut (atau jalankan as Administrator jika perlu).
 - Jadwal **Close time** menutup proses aplikasi yang path-nya sama dengan daftar **7 Applications** sebelum jadwal recheck berjalan.
+- Setiap kali jendela utama pertama kali tampil, aplikasi otomatis menjalankan proses **Run Now** dengan konfigurasi dari Settings jika semua aplikasi berstatus **OFF**. Hasilnya terlihat di status dan audit log tanpa dialog konfirmasi.
 - Tombol **Run Now** di layar utama memicu proses secara manual kapan saja, tanpa menunggu jadwal jam 06:50.
 - Tombol **Run Now** hanya aktif ketika semua aplikasi yang dikonfigurasi berstatus **OFF**. Gunakan tombol **Stop** untuk menutup proses aplikasi yang sedang **RUNNING**.
 - UI dibuat secara programatik (bukan lewat file `.Designer.cs` terpisah) supaya seluruh tampilan mudah dibaca dalam satu file — silakan sesuaikan warna/logo di bagian atas `MainForm.cs` (`HeaderColor`, `AccentColor`) sesuai identitas perusahaan Anda.

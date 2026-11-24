@@ -50,10 +50,22 @@ namespace EnterpriseLicenseDeployer
             LoadConfiguration();
             AuditLogger.Instance.LineWritten += OnAuditLineWritten;
             RecalculateNextRunTime();
+        }
 
-            // Kick off an initial detection pass at startup (display only, no copy)
-            RefreshDetectionDisplay();
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
             RefreshApplicationStatus();
+            if (!_btnRunNow.Enabled)
+            {
+                RefreshDetectionDisplay();
+                _statusLabel.Text = "Startup run skipped because configured applications are already running.";
+                AuditLogger.Instance.Log("INFO", _statusLabel.Text);
+                return;
+            }
+
+            AuditLogger.Instance.Log("INFO", "Startup deployment triggered.");
+            RunDeployment(showResultDialog: false);
         }
 
         private void InitializeComponent()
@@ -291,7 +303,7 @@ namespace EnterpriseLicenseDeployer
         private void SettingsMenuItem_Click(object? sender, EventArgs e) => OpenSettings();
         private void OpenLogMenuItem_Click(object? sender, EventArgs e) => OpenLogFolder();
         private void ExitMenuItem_Click(object? sender, EventArgs e) => Close();
-        private void BtnRunNow_Click(object? sender, EventArgs e) => RunRoutineManually();
+        private void BtnRunNow_Click(object? sender, EventArgs e) => RunDeployment(showResultDialog: true);
         private void BtnStop_Click(object? sender, EventArgs e) => StopApplications();
         private void BtnSettings_Click(object? sender, EventArgs e) => OpenSettings();
         private void BtnOpenLogFolder_Click(object? sender, EventArgs e) => OpenLogFolder();
@@ -401,7 +413,7 @@ namespace EnterpriseLicenseDeployer
             _lblMatchValue.ForeColor = color;
         }
 
-        private void RunRoutineManually()
+        private void RunDeployment(bool showResultDialog)
         {
             _routineInProgress = true;
             _btnRunNow.Enabled = false;
@@ -412,8 +424,11 @@ namespace EnterpriseLicenseDeployer
                 RefreshDetectionDisplay();
                 _statusLabel.Text = result.Message;
 
-                MessageBox.Show(result.Message, result.Success ? "Success" : "Attention",
-                    MessageBoxButtons.OK, result.Success ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
+                if (showResultDialog)
+                {
+                    MessageBox.Show(result.Message, result.Success ? "Success" : "Attention",
+                        MessageBoxButtons.OK, result.Success ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
+                }
             }
             finally
             {
